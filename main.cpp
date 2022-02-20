@@ -18,6 +18,18 @@ auto d = std::unique_ptr<Display, std::function<void(Display*)>> (XOpenDisplay(0
 static XButtonEvent 	mouse;
 static Window 		root;
 
+static void(*events[LASTEvent])(XEvent *e) {
+	[ButtonPress] 		= button_press,
+	[ButtonRelease]		= button_release,
+	[ConfigureRequest]	= configure_request,
+	[KeyPress]		= key_press,
+	[MapRequest]		= map_request,
+	[MappingNotify]		= mapping_notify,
+	[DestroyNotify]		= notify_destroy,
+	[EnterNotify]		= notify_enter,
+	[MotionNotify]		= notify_motion,
+};
+
 auto main() -> int {
 	XEvent ev;
 
