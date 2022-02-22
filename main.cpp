@@ -18,7 +18,7 @@ auto d = std::unique_ptr<Display, std::function<void(Display*)>> (XOpenDisplay(0
 static XButtonEvent 	mouse;
 static Window 		root;
 
-static void(*events[LASTEvent])(XEvent *e) {
+static void(*events[LASTEvent])(XEvent *e) = {
 	[ButtonPress] 		= button_press,
 	[ButtonRelease]		= button_release,
 	[ConfigureRequest]	= configure_request,
@@ -27,8 +27,19 @@ static void(*events[LASTEvent])(XEvent *e) {
 	[MappingNotify]		= mapping_notify,
 	[DestroyNotify]		= notify_destroy,
 	[EnterNotify]		= notify_enter,
-	[MotionNotify]		= notify_motion,
+	[MotionNotify]		= notify_motion
 };
+
+void win_focus(client *c) {
+	cur = c;
+	XSetInputFocus(d.get(), cur->w, RevertToParent, CurrentTime);
+}
+
+void notify_destroy(XEvent *e) {
+	win_del(e->xdestroywindow.window);
+
+	if(list) win_focus(list->prev);
+}
 
 auto main() -> int {
 	XEvent ev;
