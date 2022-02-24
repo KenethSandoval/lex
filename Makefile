@@ -1,10 +1,9 @@
-CFLAGS += -std=c++17
-CC      = g++
+C      = gcc
 
 all: lex
 
-lex: main.cpp
-	$(CC) -o lex main.cpp $(CFLAGS) -lX11
+lex: lex.c
+	$(C) -o lex lex.c -lX11
 
 run:
 	./lex
