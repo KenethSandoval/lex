@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #include "lex.h"
-#include "config.h"
 
 static client 		*list = {0}, *ws_list[10] = {0}, *cur;
 static int 		ws = 1, sw, sh, wx, wy, numlock = 0;
@@ -31,6 +30,7 @@ static void(*events[LASTEvent])(XEvent *e) = {
 	[MotionNotify]		= notify_motion
 };
 
+#include "config.h"
 
 void win_focus(client *c) {
 	cur = c;
@@ -70,6 +70,52 @@ void key_press(XEvent *e) {
 			keys[i].function(keys[i].arg);
 	}
 }
+
+void button_press(XEvent *e) {
+	if (!e->xbutton.subwindow) return;
+
+	win_size(e->xbutton.subwindow, &wx, &wy, &ww, &wh);
+	XRaiseWindow(d, e->xbutton.subwindow);
+	mouse = e->xbutton;
+}
+
+void button_release(XEvent *e) {
+	mouse.subwindow = 0;
+}
+
+void wind_add(Window w) {
+
+}
+
+void win_del(Window w) {}
+
+void win_kill(const Arg arg){
+
+}
+
+void win_center(const Arg arg) {
+
+}
+
+void win_fs(const Arg arg) {}
+
+void win_to_ws(const Arg arg) {}
+
+void win_prev(const Arg arg) {}
+
+void win_next(const Arg arg) {}
+
+void ws_go(const Arg arg) {}
+
+void configure_request(XEvent *e) {}
+
+void map_request(XEvent *e) {}
+
+void mapping_notify(XEvent *e) {}
+
+void run(const Arg arg) {}
+
+void input_grab(Window root) {}
 
 int main(void) {
 	XEvent ev;

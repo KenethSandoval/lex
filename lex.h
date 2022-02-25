@@ -1,12 +1,13 @@
 #include <X11/X.h>
 #include <X11/Xlib.h> 
+
 #define win	   (client *t=0, *c=list; c && t!=list->prev; t=c, c=c->next)
 #define ws_save(W) ws_list[W] = list
 #define ws_sel(W)  list = ws_list[ws = W]
 #define MAX(a,b)   ((a) > (b) ? (a) : (b))
 
 #define win_size(W, gx, gy, gw, gh) \
-	XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh \
+	XGetGeometry(d, W, &(Window){0}, gx, gy, gw, gh, \
 			&(unsigned int){0}, &(unsigned int){0})
 
 // Credits DWM.
@@ -52,6 +53,7 @@ void win_fs(const Arg arg);
 void win_focus(client *c);
 void win_kill(const Arg arg);
 void win_prev(const Arg arg);
+void win_next(const Arg arg);
 void win_to_ws(const Arg arg);
 void ws_go(const Arg arg);
 
