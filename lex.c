@@ -84,7 +84,24 @@ void button_release(XEvent *e) {
 }
 
 void wind_add(Window w) {
+	client *c;
 
+	if(!(c = (client *) calloc(1, sizeof(client)))) {
+		exit(1);
+	}
+
+	c->w=w;
+
+	if(list) {
+		list->prev->next = c;
+		c->prev 				 = list->prev;
+		list->prev 			 = c;
+		c->next 				 = list;
+	} else {
+		list = c;
+		list->prev = list->next = list;
+	}
+	ws_save(ws);
 }
 
 void win_del(Window w) {}
@@ -115,9 +132,26 @@ void mapping_notify(XEvent *e) {}
 
 void run(const Arg arg) {}
 
+// TODO: implement
 void input_grab(Window root) {}
 
 int main(void) {
 	XEvent ev;
-	printf("Hello world");
+	
+	if(!(d = XOpenDisplay(0))) exit(1);
+
+	signal(SIGCHLD, SIG_IGN);
+	XSetErrorHandler(xerror);
+
+	int s = DefaultScreen(d);
+	root  = RootWindow(d, s);
+	sw    = XDisplayWidth(d, s);
+	sh    = XDisplayHeight(d, s);
+
+	XSelectInput(d, root, SubstructureRedirectMask);
+	XDefineCursor(d, root, XCreateFontCursor(d, 68));
+	//TODO: input_grap
+	//
+	while(1 && !XNextEvent(d, &ev)) 
+		if(events[ev.type]) events[ev.type](&ev);
 }

@@ -1,4 +1,4 @@
-C      = gcc
+C      ?= gcc
 
 all: lex
 
