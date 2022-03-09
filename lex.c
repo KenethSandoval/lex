@@ -39,6 +39,8 @@ void win_focus(client *c) {
 
 void notify_destroy(XEvent *e) {
 	win_del(e->xdestroywindow.window);
+
+	if(list) win_focus(list->prev);
 }
 
 void notify_enter(XEvent *e) {
@@ -57,7 +59,7 @@ void notify_motion(XEvent *e) {
 
 	XMoveResizeWindow(d, mouse.subwindow,
 			wx + (mouse.button == 1 ? xd : 0),
-			wy + (mouse.button == 1 ? yd : -0),
+			wy + (mouse.button == 1 ? yd : 0),
 			MAX(1, ww + (mouse.button == 3 ? xd : 0)),
 			MAX(1, wh + (mouse.button == 3 ? yd : 0)));
 }
@@ -90,7 +92,7 @@ void wind_add(Window w) {
 		exit(1);
 	}
 
-	c->w=w;
+	c->w = w;
 
 	if(list) {
 		list->prev->next = c;
@@ -107,11 +109,14 @@ void wind_add(Window w) {
 void win_del(Window w) {}
 
 void win_kill(const Arg arg){
-
+	if (cur) XKillClient(d, cur->w);
 }
 
 void win_center(const Arg arg) {
+	if (!cur) return;
 
+	win_size(cur->w, &(int){0}, &(int){0}, &ww, &wh);
+	XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh)/2);
 }
 
 void win_fs(const Arg arg) {}
@@ -124,16 +129,71 @@ void win_next(const Arg arg) {}
 
 void ws_go(const Arg arg) {}
 
-void configure_request(XEvent *e) {}
+void configure_request(XEvent *e) {
+	XConfigureRequestEvent *ev = &e->xconfigurerequest;
+
+	XConfigureWindow(d, ev->window, ev->value_mask, &(XWindowChanges) {
+			  .x       		= ev->x,
+				.y       		= ev->y,
+				.width   		= ev->width,
+				.height  		= ev->height,
+				.sibling 		= ev->above,
+				.stack_mode = ev->detail
+			});
+}
 
 void map_request(XEvent *e) {}
 
-void mapping_notify(XEvent *e) {}
+void mapping_notify(XEvent *e) {
+	XMappingEvent *ev = &e->xmapping;
 
-void run(const Arg arg) {}
+	if(ev->request == MappingKeyboard || ev->request == MappingModifier) {
+		XRefreshKeyboardMapping(ev);
+		input_grab(root);
+	}
+}
 
-// TODO: implement
-void input_grab(Window root) {}
+void run(const Arg arg) {
+	if (fork()) return;
+	if (d) close(ConnectionNumber(d));
+
+	setsid();
+	execvp((char *)arg.com[0], (char**)arg.com);
+}
+
+void input_grab(Window root) {
+	unsigned int i, j, modifiers[] ={0, LockMask, numlock, numlock|LockMask};
+	XModifierKeymap *modmap = XGetModifierMapping(d);
+	KeyCode code;
+
+	for(i = 0; i < 8; i++){
+		for(int k = 0; k < modmap->max_keypermod; k++) {
+			if(modmap->modifiermap[i * modmap->max_keypermod + k] == XKeysymToKeycode(d, 0xff7f)) {
+				numlock = (1 << i);
+			}
+		}
+	}
+
+	XUngrabKey(d, AnyKey, AnyModifier, root);
+
+	for (i = 0; i < sizeof(keys)/sizeof(*keys); i++) {
+		if ((code = XKeysymToKeycode(d, keys[i].keysym))) {
+			for(j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++) {
+				XGrabKey(d, code, keys[i].mod | modifiers[j], root,
+						True, GrabModeAsync, GrabModeAsync);
+			}
+		}
+	}
+
+	for (i = 1; i<4; i += 2) {
+		for (j = 0; j < sizeof(modifiers)/sizeof(*modifiers); j++) {
+			XGrabButton(d, i, MOD | modifiers[j], root, True,
+					ButtonPressMask|ButtonReleaseMask|PointerMotionMask,
+					GrabModeAsync, GrabModeAsync, 0, 0);
+		}
+	}
+	XFreeModifiermap(modmap);
+}
 
 int main(void) {
 	XEvent ev;
@@ -150,8 +210,8 @@ int main(void) {
 
 	XSelectInput(d, root, SubstructureRedirectMask);
 	XDefineCursor(d, root, XCreateFontCursor(d, 68));
-	//TODO: input_grap
-	//
+	input_grab(root);
+
 	while(1 && !XNextEvent(d, &ev)) 
 		if(events[ev.type]) events[ev.type](&ev);
 }
