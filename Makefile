@@ -10,7 +10,7 @@ lex: lex.c lex.h config.h Makefile
 	$(CC) -O3 $(CFLAGS) -o $@ $< -lX11 $(LDFLAGS)
 
 install: all
-	install -Dm755 sowm $(DESTDIR)$(BINDIR)/lex
+	install -Dm755 lex $(DESTDIR)$(BINDIR)/lex
 
 uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/lex
