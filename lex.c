@@ -85,7 +85,7 @@ void button_release(XEvent *e) {
 	mouse.subwindow = 0;
 }
 
-void wind_add(Window w) {
+void win_add(Window w) {
 	client *c;
 
 	if(!(c = (client *) calloc(1, sizeof(client)))) {
