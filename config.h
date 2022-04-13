@@ -3,7 +3,7 @@
 
 #define MOD Mod4Mask
 
-const char* menu[] = {"rofi -show run", 0};
+const char* menu[] = {"dmenu_run -i", 0};
 const char* term[] = {"alacritty", 0};
 const char* brow[] = {"firefox", 0};
 
@@ -15,6 +15,9 @@ static struct key keys[] = {
 	{MOD, XK_d, run, {.com=menu}},
 	{MOD, XK_Return, run, {.com=term}},
 	{MOD, XK_b, run, {.com=brow}},
+
+
+	{MOD, XK_Tab, win_next, {0}},
 
 	{MOD,           XK_1, ws_go,     {.i = 1}},
   {MOD|ShiftMask, XK_1, win_to_ws, {.i = 1}},
